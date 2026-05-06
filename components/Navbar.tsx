@@ -9,6 +9,7 @@ export default function Navbar() {
   const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [search, setSearch] = useState('');
+  const isAdminPage = pathname.startsWith('/admin');
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -25,7 +26,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-[#0f0f0f] h-14 px-4 flex items-center justify-between">
+    <header className={`fixed top-0 w-full z-50 ${isAdminPage ? 'bg-[#07080f]' : 'bg-[#0f0f0f]'} h-14 px-4 flex items-center justify-between`}>
       {/* Left */}
       <div className="flex items-center gap-4">
         <button 
@@ -36,7 +37,7 @@ export default function Navbar() {
         </button>
         <Link href="/" className="flex items-center gap-1 group">
           <span className="material-symbols-outlined text-red-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
-          <span className="text-xl font-bold tracking-tighter text-white">DashTube</span>
+          <span className="text-xl font-bold tracking-tighter text-white">{isAdminPage ? 'DashTube Admin' : 'DashTube'}</span>
         </Link>
       </div>
 

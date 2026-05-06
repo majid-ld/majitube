@@ -57,14 +57,14 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[--admin-background] font-inter">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 pt-14 md:ml-60 px-6 pb-12 max-w-[1700px] mx-auto">
         <div className="flex items-center gap-4 mb-12">
-          <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-500/20 flex items-center justify-center shadow-xl shadow-red-600/10">
-            <span className="material-symbols-outlined text-red-500 text-3xl">admin_panel_settings</span>
+          <div className="w-12 h-12 rounded-2xl bg-[--admin-accent-soft] border border-[--admin-border] flex items-center justify-center shadow-xl shadow-[--admin-accent]/10">
+            <span className="material-symbols-outlined text-[--admin-accent] text-3xl">admin_panel_settings</span>
           </div>
           <div>
              <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Security Core</h1>
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden shadow-2xl shadow-black/60">
+        <div className="glass-card admin-card rounded-[2.5rem] overflow-hidden">
           {loading ? (
             <div className="py-32 flex justify-center">
                <span className="material-symbols-outlined animate-spin text-4xl text-violet-600">sync</span>

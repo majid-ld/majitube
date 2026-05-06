@@ -56,14 +56,14 @@ export default function AdminPublishersPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[--admin-background] font-inter">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 pt-14 md:ml-60 px-6 pb-12 max-w-[1700px] mx-auto">
           <div className="flex items-center gap-4 mb-12">
-            <div className="w-12 h-12 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center shadow-xl shadow-violet-600/10">
-              <span className="material-symbols-outlined text-violet-500 text-3xl">verified</span>
+            <div className="w-12 h-12 rounded-2xl bg-[--admin-accent-soft] border border-[--admin-border] flex items-center justify-center shadow-xl shadow-[--admin-accent]/10">
+              <span className="material-symbols-outlined text-[--admin-accent] text-3xl">verified</span>
             </div>
             <div>
                <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Publisher Core</h1>
@@ -75,10 +75,10 @@ export default function AdminPublishersPage() {
             {/* Pending Requests */}
             <div className="space-y-6">
               <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                <span className="material-symbols-outlined text-violet-500">pending_actions</span>
+                <span className="material-symbols-outlined text-[--admin-accent]">pending_actions</span>
                 Role Applications
               </h3>
-              <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden">
+              <div className="glass-card admin-card rounded-[2.5rem] overflow-hidden">
                 {requests.length === 0 ? (
                   <div className="py-20 text-center">
                     <p className="text-neutral-500 text-xs font-black uppercase tracking-[0.2em]">No pending applications</p>
@@ -116,10 +116,10 @@ export default function AdminPublishersPage() {
             {/* Active Publishers */}
             <div className="space-y-6">
               <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                <span className="material-symbols-outlined text-violet-500">groups</span>
+                <span className="material-symbols-outlined text-[--admin-accent]">groups</span>
                 Active Publishers
               </h3>
-              <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden">
+              <div className="glass-card admin-card rounded-[2.5rem] overflow-hidden">
                 {publishers.length === 0 ? (
                   <div className="py-20 text-center">
                     <p className="text-neutral-500 text-xs font-black uppercase tracking-[0.2em]">No publishers found</p>

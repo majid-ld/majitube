@@ -77,7 +77,7 @@ export default function AdminVipPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[--admin-background] font-inter">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
@@ -85,8 +85,8 @@ export default function AdminVipPage() {
           
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-xl shadow-amber-500/10">
-                <span className="material-symbols-outlined text-amber-500 text-3xl">stars</span>
+              <div className="w-12 h-12 rounded-2xl bg-[--admin-accent-soft] border border-[--admin-border] flex items-center justify-center shadow-xl shadow-[--admin-accent]/10">
+                <span className="material-symbols-outlined text-[--admin-accent] text-3xl">stars</span>
               </div>
               <div>
                  <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
@@ -110,9 +110,9 @@ export default function AdminVipPage() {
 
           {!selectedPublisher ? (
             /* Publisher List View */
-            <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden">
+            <div className="glass-card admin-card rounded-[2.5rem] overflow-hidden">
               {loading ? (
-                <div className="py-32 flex justify-center"><span className="material-symbols-outlined animate-spin text-4xl text-amber-500">sync</span></div>
+                  <div className="py-32 flex justify-center"><span className="material-symbols-outlined animate-spin text-4xl text-[--admin-accent]">sync</span></div>
               ) : publishers.length === 0 ? (
                 <div className="py-32 text-center"><p className="text-neutral-500 text-xs font-black uppercase tracking-widest">No publishers found</p></div>
               ) : (
@@ -164,7 +164,7 @@ export default function AdminVipPage() {
                   <span className="material-symbols-outlined text-amber-500">add_moderator</span>
                   Grant Privilege
                 </h3>
-                <div className="glass-card rounded-[2.5rem] border-white/5 p-8">
+                <div className="glass-card admin-card rounded-[2.5rem] p-8">
                   <form onSubmit={handleGrantAccess} className="space-y-6">
                     <div className="space-y-2">
                       <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-widest ml-1">Target Subscriber Email</label>
@@ -208,7 +208,7 @@ export default function AdminVipPage() {
                   <span className="material-symbols-outlined text-amber-500">verified</span>
                   Active VIP Members
                 </h3>
-                <div className="glass-card rounded-[2.5rem] border-white/5 overflow-hidden">
+                <div className="glass-card admin-card rounded-[2.5rem] overflow-hidden">
                   {loading ? (
                     <div className="py-20 flex justify-center"><span className="material-symbols-outlined animate-spin text-4xl text-amber-500">sync</span></div>
                   ) : subscribers.length === 0 ? (

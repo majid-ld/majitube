@@ -3,7 +3,7 @@ import { vipDb, usersDb } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { v4 as uuidv4 } from 'uuid';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getSession();
     if (!session || session.role !== 'admin') {
