@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function UploadPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest text-on-surface">
+    <div className="flex flex-col min-h-screen bg-[#0f0f0f] text-white">
       <Navbar />
       <Sidebar />
 

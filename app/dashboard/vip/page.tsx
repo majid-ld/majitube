@@ -58,7 +58,7 @@ export default function VipManagementPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[#0f0f0f] font-inter">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

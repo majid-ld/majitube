@@ -73,13 +73,13 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
        <span className="material-symbols-outlined animate-spin text-4xl text-violet-600">sync</span>
     </div>
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[#0f0f0f] font-inter">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
         

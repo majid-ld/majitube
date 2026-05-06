@@ -26,7 +26,7 @@ export default function SubscriptionsPage() {
 
   if (!session && !loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+      <div className="flex flex-col min-h-screen bg-[#0f0f0f] font-inter">
         <Navbar />
         <Sidebar />
         <main className="md:ml-64 pt-24 px-6 flex flex-col items-center justify-center min-h-[80vh]">
@@ -42,7 +42,7 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-container-lowest font-inter">
+    <div className="flex flex-col min-h-screen bg-[#0f0f0f] font-inter">
       <Navbar />
       <Sidebar />
       
