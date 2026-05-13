@@ -8,7 +8,7 @@ export async function GET() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const playlists = playlistsDb.getByUserId.all(session.id);
+    const playlists = await playlistsDb.getByUserId(session.id);
     return NextResponse.json({ playlists });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     if (!name || typeof name !== 'string') return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
 
     const id = uuidv4();
-    playlistsDb.create.run(id, session.id, name);
+    await playlistsDb.create(id, session.id, name);
     
     return NextResponse.json({ success: true, playlist: { id, name } });
   } catch (error) {

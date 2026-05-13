@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const requests = roleRequestsDb.getAll.all();
+    const requests = await roleRequestsDb.getAll();
     return NextResponse.json({ requests });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

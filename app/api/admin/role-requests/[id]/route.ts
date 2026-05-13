@@ -19,24 +19,24 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    const roleReq = roleRequestsDb.getById.get(id);
+    const roleReq = await roleRequestsDb.getById(id);
     if (!roleReq) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });
     }
 
-    roleRequestsDb.updateStatus.run(status, id);
+    await roleRequestsDb.updateStatus(id, status);
 
     if (status === 'accepted') {
-      usersDb.updateRole.run(roleReq.requested_role, roleReq.user_id);
+      await usersDb.updateRole(roleReq.user_id, roleReq.requested_role);
       
-      notificationsDb.create.run(
+      await notificationsDb.create(
         uuidv4(),
         roleReq.user_id,
         `Your request for ${roleReq.requested_role} status has been approved!`,
         '/profile'
       );
     } else {
-       notificationsDb.create.run(
+       await notificationsDb.create(
         uuidv4(),
         roleReq.user_id,
         `Your request for ${roleReq.requested_role} status was not approved at this time.`,

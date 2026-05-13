@@ -9,7 +9,10 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    db.prepare('DELETE FROM history WHERE user_id = ?').run(session.id);
+    await db.execute({
+      sql: 'DELETE FROM history WHERE user_id = ?',
+      args: [session.id]
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

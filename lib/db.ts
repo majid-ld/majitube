@@ -74,6 +74,30 @@ export interface Notification {
   created_at: string;
 }
 
+export interface VipRequest {
+  id: string;
+  user_id: string;
+  publisher_id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  expires_at?: string | null;
+  subscriber_name?: string;
+  publisher_name?: string;
+  avatar_url?: string;
+  subscriber_email?: string;
+}
+
+export interface RoleRequest {
+  id: string;
+  user_id: string;
+  requested_role: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  username?: string;
+  email?: string;
+  avatar_url?: string;
+}
+
 export const videosDb = {
   async insert(id: string, drive_id: string, title: string, description: string, thumbnail_url: string, size: number, category: string, publisher_id: string | null, visibility: string, is_reel: number) {
     return await client.execute({
@@ -534,7 +558,7 @@ export const vipDb = {
       sql: `SELECT * FROM vip_requests WHERE id = ?`,
       args: [id]
     });
-    return res.rows[0] || null;
+    return (res.rows[0] as unknown as VipRequest) || null;
   },
   
   async getRequestsForPublisher(publisherId: string) {
@@ -546,7 +570,7 @@ export const vipDb = {
             ORDER BY r.created_at DESC`,
       args: [publisherId]
     });
-    return res.rows;
+    return res.rows as unknown as VipRequest[];
   },
   
   async getAcceptedVipsForPublisher(publisherId: string) {
@@ -558,7 +582,7 @@ export const vipDb = {
             ORDER BY r.created_at DESC`,
       args: [publisherId]
     });
-    return res.rows;
+    return res.rows as unknown as VipRequest[];
   },
   
   async isVip(userId: string, publisherId: string) {
@@ -588,7 +612,7 @@ export const vipDb = {
             ORDER BY r.created_at DESC`,
       args: [publisherId]
     });
-    return res.rows;
+    return res.rows as unknown as VipRequest[];
   },
 
   async updateExpiry(expiresAt: string | null, id: string) {
@@ -607,7 +631,7 @@ export const vipDb = {
       WHERE r.status = 'accepted'
       ORDER BY r.created_at DESC
     `);
-    return res.rows;
+    return res.rows as unknown as VipRequest[];
   },
 
   async grantAccess(id: string, user_id: string, publisher_id: string, expires_at: string | null) {
@@ -631,7 +655,7 @@ export const vipDb = {
       WHERE r.status = 'pending'
       ORDER BY r.created_at DESC
     `);
-    return res.rows;
+    return res.rows as unknown as VipRequest[];
   },
 };
 
@@ -659,7 +683,7 @@ export const roleRequestsDb = {
       WHERE r.status = 'pending'
       ORDER BY r.created_at DESC
     `);
-    return res.rows;
+    return res.rows as unknown as RoleRequest[];
   },
 
   async getByUserId(userId: string) {
@@ -667,7 +691,7 @@ export const roleRequestsDb = {
       sql: `SELECT * FROM role_requests WHERE user_id = ?`,
       args: [userId]
     });
-    return res.rows[0] || null;
+    return (res.rows[0] as unknown as RoleRequest) || null;
   },
 
   async getById(id: string) {
@@ -675,7 +699,7 @@ export const roleRequestsDb = {
       sql: `SELECT * FROM role_requests WHERE id = ?`,
       args: [id]
     });
-    return res.rows[0] || null;
+    return (res.rows[0] as unknown as RoleRequest) || null;
   }
 };
 

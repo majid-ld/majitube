@@ -12,13 +12,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    const existingUser = usersDb.getByEmail.get(email);
+    const existingUser = await usersDb.getByEmail(email);
     if (existingUser) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
-    const countRes = usersDb.count.get();
-    const isFirstUser = countRes && countRes.count === 0;
+    const count = await usersDb.count();
+    const isFirstUser = count === 0;
     
     // First user is admin, rest are viewer
     const role = isFirstUser ? 'admin' : 'viewer';
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = uuidv4();
 
-    usersDb.insert.run(userId, username, email, hashedPassword, role);
+    await usersDb.insert(userId, username, email, hashedPassword, role);
 
     const newUser = { id: userId, username, email, password_hash: hashedPassword, role, created_at: new Date().toISOString() };
     

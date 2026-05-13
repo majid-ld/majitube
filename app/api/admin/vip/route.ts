@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const publisherId = searchParams.get('publisherId');
 
     const subscribers = publisherId 
-      ? vipDb.getVipSubscribers.all(publisherId)
-      : vipDb.getAllGlobal.all();
+      ? await vipDb.getVipSubscribers(publisherId)
+      : await vipDb.getAllGlobal();
     return NextResponse.json({ subscribers });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
 
     const { user_email, publisher_email, expires_at } = await request.json();
 
-    const user = usersDb.getByEmail.get(user_email);
-    const publisher = usersDb.getByEmail.get(publisher_email);
+    const user = await usersDb.getByEmail(user_email);
+    const publisher = await usersDb.getByEmail(publisher_email);
 
     if (!user || !publisher) {
       return NextResponse.json({ error: 'User or Publisher not found' }, { status: 404 });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Target is not a publisher' }, { status: 400 });
     }
 
-    vipDb.grantAccess.run(uuidv4(), user.id, publisher.id, expires_at || null, 'accepted');
+    await vipDb.grantAccess(uuidv4(), user.id, publisher.id, expires_at || null);
 
     return NextResponse.json({ success: true });
   } catch (error) {
