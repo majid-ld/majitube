@@ -9,14 +9,14 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const video = videosDb.getById.get(id);
+    const video = await videosDb.getById(id);
 
     if (!video) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
     // Increment view count
-    videosDb.incrementViews.run(id);
+    await videosDb.incrementViews(id);
 
     const urls = getDriveStreamUrls(video.drive_id);
 
@@ -44,7 +44,7 @@ export async function DELETE(
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const video = videosDb.getById.get(id);
+    const video = await videosDb.getById(id);
 
     if (!video) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
@@ -54,7 +54,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    videosDb.delete.run(id);
+    await videosDb.delete(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -72,7 +72,7 @@ export async function PUT(
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const video = videosDb.getById.get(id);
+    const video = await videosDb.getById(id);
     if (!video) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
@@ -83,7 +83,7 @@ export async function PUT(
 
     const { title, description, visibility, thumbnail_url, category } = await request.json();
     
-    videosDb.update.run(
+    await videosDb.update(
       title || video.title, 
       description || video.description, 
       visibility || video.visibility, 

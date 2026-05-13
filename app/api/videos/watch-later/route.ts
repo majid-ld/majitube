@@ -8,7 +8,7 @@ export async function GET() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const videos = watchLaterDb.getByUserId.all(session.id) as any[];
+    const videos = await watchLaterDb.getByUserId(session.id);
 
     const enriched = videos.map((v) => {
       const urls = getDriveStreamUrls(v.drive_id);

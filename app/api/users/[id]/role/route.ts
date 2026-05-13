@@ -17,7 +17,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     // Await params since Next.js 15 requires awaiting dynamic route params in some cases
     const { id } = await Promise.resolve(params);
 
-    usersDb.updateRole.run(role, id);
+    await usersDb.updateRole(id, role);
     
     return NextResponse.json({ success: true });
   } catch (error) {

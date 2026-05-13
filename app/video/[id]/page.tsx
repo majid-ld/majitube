@@ -21,7 +21,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const video = videosDb.getById.get(id);
+  const video = await videosDb.getById(id);
   if (!video) return { title: 'Video Not Found — DashStream' };
   return {
     title: `${video.title} — DashStream`,
@@ -51,10 +51,10 @@ function formatViews(views: number): string {
 export default async function VideoPage({ params }: Props) {
   const { id } = await params;
 
-  const video = videosDb.getById.get(id);
+  const video = await videosDb.getById(id);
   if (!video) notFound();
 
-  videosDb.incrementViews.run(id);
+  await videosDb.incrementViews(id);
 
   const session = await getSession();
   
@@ -69,21 +69,25 @@ export default async function VideoPage({ params }: Props) {
     if (!session) {
       isAuthorized = false;
     } else {
-      const res = vipDb.getRequestStatus.get(session.id, video.publisher_id!);
-      vipStatus = (res?.status as any) || 'none';
+      const res = await vipDb.getRequestStatus(session.id, video.publisher_id!);
+      vipStatus = (res as any) || 'none';
       if (vipStatus !== 'accepted') {
         isAuthorized = false;
       }
     }
   }
 
-  const recommendedVideos = db.prepare(`
-    SELECT v.*, u.username as publisher_username 
-    FROM videos v
-    JOIN users u ON v.publisher_id = u.id
-    WHERE v.id != ? AND v.visibility = 'public'
-    LIMIT 10
-  `).all(id) as any[];
+  const recRes = await db.execute({
+    sql: `
+      SELECT v.*, u.username as publisher_username 
+      FROM videos v
+      JOIN users u ON v.publisher_id = u.id
+      WHERE v.id != ? AND v.visibility = 'public'
+      LIMIT 10
+    `,
+    args: [id]
+  });
+  const recommendedVideos = recRes.rows as any[];
 
   const urls = getDriveStreamUrls(video.drive_id);
 

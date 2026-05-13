@@ -21,16 +21,16 @@ export async function PUT(
 
     // We should probably check if this request actually belongs to this publisher
     // But status update helper is simple.
-    vipDb.updateStatus.run(status, id);
+    await vipDb.updateStatus(id, status);
 
     // Notify the user
-    const requestItem = vipDb.getById.get(id);
+    const requestItem = await vipDb.getById(id);
     if (requestItem) {
       const message = status === 'accepted' 
         ? `Your VIP request for ${session.username} has been accepted!` 
         : `Your VIP request for ${session.username} was declined.`;
       
-      notificationsDb.create.run(
+      await notificationsDb.create(
         uuidv4(),
         requestItem.user_id,
         message,

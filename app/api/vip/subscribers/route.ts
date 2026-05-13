@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const subscribers = vipDb.getVipSubscribers.all(session.id);
+    const subscribers = await vipDb.getVipSubscribers(session.id);
     return NextResponse.json({ subscribers });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

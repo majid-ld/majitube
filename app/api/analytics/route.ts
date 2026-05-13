@@ -9,8 +9,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const stats = analyticsDb.getStats.get();
-    const rawTopVideos = analyticsDb.getTopVideos.all() as any[];
+    const stats = await analyticsDb.getStats();
+    const rawTopVideos = await analyticsDb.getTopVideos();
     
     const topVideos = rawTopVideos.map(v => ({
       ...v,

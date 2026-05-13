@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const videos = videosDb.getByPublisherId.all(session.id) as any[];
+    const videos = await videosDb.getByPublisherId(session.id);
 
     // Enrich with streaming URLs
     const enriched = videos.map((v) => {

@@ -6,7 +6,7 @@ import { getSession } from '@/lib/session';
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: video_id } = await params;
-    const comments = commentsDb.getByVideoId.all(video_id);
+    const comments = await commentsDb.getByVideoId(video_id);
     return NextResponse.json({ comments });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -28,13 +28,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id: video_id } = await params;
     const commentId = uuidv4();
 
-    commentsDb.insert.run(commentId, video_id, session.id, content.trim(), parentId || null);
+    await commentsDb.insert(commentId, video_id, session.id, content.trim(), parentId || null);
     
     // Notify the parent comment author or the video publisher
     if (parentId) {
-      const parentComment = commentsDb.getById.get(parentId);
+      const parentComment = await commentsDb.getById(parentId);
       if (parentComment && parentComment.user_id !== session.id) {
-        notificationsDb.create.run(
+        await notificationsDb.create(
           uuidv4(),
           parentComment.user_id,
           `${session.email.split('@')[0]} replied to your comment.`,
@@ -42,9 +42,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         );
       }
     } else {
-      const video = videosDb.getById.get(video_id);
+      const video = await videosDb.getById(video_id);
       if (video && video.publisher_id && video.publisher_id !== session.id) {
-        notificationsDb.create.run(
+        await notificationsDb.create(
           uuidv4(),
           video.publisher_id,
           `${session.email.split('@')[0]} commented on your video: "${video.title}"`,

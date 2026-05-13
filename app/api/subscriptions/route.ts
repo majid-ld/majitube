@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Cannot subscribe to yourself' }, { status: 400 });
     }
 
-    const isSubscribed = subscriptionsDb.toggle(session.id, publisher_id);
+    const isSubscribed = await subscriptionsDb.toggle(session.id, publisher_id);
     return NextResponse.json({ success: true, isSubscribed });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -30,14 +30,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Missing publisher_id' }, { status: 400 });
     }
 
-    const countRes = subscriptionsDb.countSubscribers.get(publisher_id);
-    const subscribers = countRes ? countRes.count : 0;
+    const subscribers = await subscriptionsDb.countSubscribers(publisher_id);
 
     let isSubscribed = false;
     const session = await getSession();
     if (session) {
-      const subRes = subscriptionsDb.isSubscribed.get(session.id, publisher_id);
-      if (subRes && subRes.count > 0) isSubscribed = true;
+      isSubscribed = await subscriptionsDb.isSubscribed(session.id, publisher_id);
     }
 
     return NextResponse.json({ subscribers, isSubscribed });

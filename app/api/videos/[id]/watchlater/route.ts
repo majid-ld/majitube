@@ -14,8 +14,8 @@ export async function GET(
       return NextResponse.json({ inWatchLater: false });
     }
 
-    const exists = watchLaterDb.isInWatchLater.get(session.id, id);
-    return NextResponse.json({ inWatchLater: exists && exists.count > 0 });
+    const inWatchLater = await watchLaterDb.isInWatchLater(session.id, id);
+    return NextResponse.json({ inWatchLater });
   } catch (error) {
     console.error('Watch later check error:', error);
     return NextResponse.json({ inWatchLater: false });
@@ -34,7 +34,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const added = watchLaterDb.toggle(session.id, id);
+    const added = await watchLaterDb.toggle(session.id, id);
 
     return NextResponse.json({ added });
   } catch (error) {

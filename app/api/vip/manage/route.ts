@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const requests = vipDb.getRequestsForPublisher.all(session.id);
+    const requests = await vipDb.getRequestsForPublisher(session.id);
     return NextResponse.json({ requests });
   } catch (error) {
     console.error('VIP Manage GET Error:', error);
@@ -35,7 +35,7 @@ export async function PATCH(req: Request) {
     // (In a real app, you'd check this in the SQL or with a separate query)
     // For now, we'll assume the requestId is valid and belongs to the publisher's list
     
-    vipDb.updateStatus.run(status, requestId);
+    await vipDb.updateStatus(requestId, status);
 
     return NextResponse.json({ success: true, message: `Request ${status}` });
   } catch (error) {

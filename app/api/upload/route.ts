@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     
     const isReel = formData.get('isReel') === 'true' ? 1 : 0;
     
-    videosDb.insert.run(
+    await videosDb.insert(
       videoId,
       driveFileId,
       title,
@@ -137,11 +137,15 @@ export async function POST(request: NextRequest) {
     );
 
     // Notify subscribers
-    const subscribers = subscriptionsDb.countSubscribers.get(session.id);
-    if (subscribers && subscribers.count > 0) {
-      const subs = db.prepare(`SELECT subscriber_id FROM subscriptions WHERE publisher_id = ?`).all(session.id) as {subscriber_id: string}[];
+    const subscribersCount = await subscriptionsDb.countSubscribers(session.id);
+    if (subscribersCount > 0) {
+      const subsRes = await db.execute({
+        sql: `SELECT subscriber_id FROM subscriptions WHERE publisher_id = ?`,
+        args: [session.id]
+      });
+      const subs = subsRes.rows as unknown as {subscriber_id: string}[];
       for (const sub of subs) {
-        notificationsDb.create.run(
+        await notificationsDb.create(
           uuidv4(),
           sub.subscriber_id,
           `${session.username || 'A publisher'} uploaded a new video: ${title}`,

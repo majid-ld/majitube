@@ -13,9 +13,9 @@ export async function GET(
 
     let publisher;
     if (publisherIdOrUsername.length === 36 && publisherIdOrUsername.includes('-')) {
-      publisher = usersDb.getById.get(publisherIdOrUsername);
+      publisher = await usersDb.getById(publisherIdOrUsername);
     } else {
-      publisher = usersDb.getByUsername.get(publisherIdOrUsername);
+      publisher = await usersDb.getByUsername(publisherIdOrUsername);
     }
 
     if (!publisher) {
@@ -28,24 +28,20 @@ export async function GET(
     let isVip = false;
     let vipStatus = null;
     if (currentUserId) {
-      const vipCheck = vipDb.isVip.get(currentUserId, publisherId);
-      isVip = vipCheck ? vipCheck.count > 0 : false;
-      
-      const statusCheck = vipDb.getRequestStatus.get(currentUserId, publisherId);
-      vipStatus = statusCheck ? statusCheck.status : null;
+      isVip = await vipDb.isVip(currentUserId, publisherId);
+      vipStatus = await vipDb.getRequestStatus(currentUserId, publisherId);
     }
 
     // Get subscription status
     let isSubscribed = false;
     if (currentUserId) {
-      const subCheck = subscriptionsDb.isSubscribed.get(currentUserId, publisherId);
-      isSubscribed = subCheck ? subCheck.count > 0 : false;
+      isSubscribed = await subscriptionsDb.isSubscribed(currentUserId, publisherId);
     }
 
-    const subscriberCount = subscriptionsDb.countSubscribers.get(publisherId)?.count || 0;
+    const subscriberCount = await subscriptionsDb.countSubscribers(publisherId);
 
     // Get videos and filter by visibility
-    const allVideos = videosDb.getByPublisherId.all(publisherId);
+    const allVideos = await videosDb.getByPublisherId(publisherId);
     const filteredVideos = allVideos.filter(video => {
       if (video.visibility === 'public') return true;
       if (currentUserId === publisherId) return true; // Owner can see everything

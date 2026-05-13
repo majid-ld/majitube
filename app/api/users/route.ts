@@ -12,9 +12,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
 
-    const users = role 
-      ? usersDb.getAll.all().filter((u: any) => u.role === role)
-      : usersDb.getAll.all();
+    let users = await usersDb.getAll();
+    if (role) {
+      users = users.filter((u: any) => u.role === role);
+    }
     return NextResponse.json({ users });
   } catch (error) {
     console.error('Failed to get users:', error);

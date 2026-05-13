@@ -15,7 +15,7 @@ export async function POST() {
       return NextResponse.json({ error: 'You are already a publisher or admin' }, { status: 400 });
     }
 
-    roleRequestsDb.create.run(uuidv4(), session.id, 'publisher');
+    await roleRequestsDb.create(uuidv4(), session.id, 'publisher');
 
     return NextResponse.json({ success: true, message: 'Request submitted successfully' });
   } catch (error) {
@@ -31,7 +31,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const request = roleRequestsDb.getByUserId.get(session.id);
+    const request = await roleRequestsDb.getByUserId(session.id);
     return NextResponse.json({ request });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

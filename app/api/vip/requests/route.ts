@@ -14,8 +14,8 @@ export async function GET() {
       return NextResponse.json({ requests: [], accepted: [] });
     }
 
-    const requests = vipDb.getRequestsForPublisher.all(session.id);
-    const accepted = vipDb.getVipSubscribers.all(session.id);
+    const requests = await vipDb.getRequestsForPublisher(session.id);
+    const accepted = await vipDb.getVipSubscribers(session.id);
     return NextResponse.json({ requests, accepted });
   } catch (error) {
     console.error('Failed to get VIP requests:', error);

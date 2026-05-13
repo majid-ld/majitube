@@ -6,14 +6,12 @@ import { v4 as uuidv4 } from 'uuid';
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: video_id } = await params;
-    const countRes = likesDb.count.get(video_id);
-    const count = countRes?.count || 0;
+    const count = await likesDb.count(video_id);
 
     let hasLiked = false;
     const session = await getSession();
     if (session) {
-      const likedRes = likesDb.hasLiked.get(video_id, session.id);
-      if (likedRes && likedRes.count > 0) hasLiked = true;
+      hasLiked = await likesDb.hasLiked(video_id, session.id);
     }
 
     return NextResponse.json({ count, hasLiked });
@@ -32,13 +30,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id: video_id } = await params;
     
     // Using our transaction to toggle
-    const isLiked = likesDb.toggle(video_id, session.id);
+    const isLiked = await likesDb.toggle(video_id, session.id);
 
     // Notify the video publisher if liked
     if (isLiked) {
-      const video = videosDb.getById.get(video_id);
+      const video = await videosDb.getById(video_id);
       if (video && video.publisher_id && video.publisher_id !== session.id) {
-        notificationsDb.create.run(
+        await notificationsDb.create(
           uuidv4(),
           video.publisher_id,
           `${session.email.split('@')[0]} liked your video: "${video.title}"`,

@@ -8,7 +8,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!session) return NextResponse.json({ success: false }); // silently fail for unauth
 
     const { id: video_id } = await params;
-    historyDb.add.run(session.id, video_id);
+    await historyDb.add(session.id, video_id);
     
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -7,9 +7,8 @@ export async function GET() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const notifications = notificationsDb.getByUserId.all(session.id);
-    const unreadRes = notificationsDb.getUnreadCount.get(session.id);
-    const unreadCount = unreadRes ? unreadRes.count : 0;
+    const notifications = await notificationsDb.getByUserId(session.id);
+    const unreadCount = await notificationsDb.getUnreadCount(session.id);
 
     return NextResponse.json({ notifications, unreadCount });
   } catch (error) {
@@ -22,7 +21,7 @@ export async function PUT() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    notificationsDb.markAsRead.run(session.id);
+    await notificationsDb.markAsRead(session.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

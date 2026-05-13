@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       const session = await getSession();
       if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       
-      const subRes = subscriptionsDb.getSubscribedPublisherIds.all(session.id) as {publisher_id: string}[];
+      const subRes = await subscriptionsDb.getSubscribedPublisherIds(session.id);
       const publisherIds = subRes.map(s => s.publisher_id);
       
       if (publisherIds.length > 0) {
@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
       sql += ` ORDER BY v.created_at DESC`;
     }
 
-    const videos = db.prepare(sql).all(...params) as any[];
+    const res = await db.execute({ sql, args: params });
+    const videos = res.rows as any[];
 
     // Enrich with streaming URLs
     const enriched = videos.map((v) => {

@@ -20,10 +20,10 @@ export async function POST(request: Request) {
     }
 
     const requestId = uuidv4();
-    vipDb.request.run(requestId, session.id, publisherId);
+    await vipDb.request(requestId, session.id, publisherId);
 
     // Notify the publisher
-    notificationsDb.create.run(
+    await notificationsDb.create(
       uuidv4(),
       publisherId,
       `${session.username} requested VIP access to your cinematic content.`,

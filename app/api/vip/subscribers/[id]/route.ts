@@ -16,7 +16,7 @@ export async function PUT(
     const { expires_at } = await request.json();
     
     // id is the request id in vip_requests table
-    vipDb.updateExpiry.run(expires_at || null, id);
+    await vipDb.updateExpiry(expires_at || null, id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
