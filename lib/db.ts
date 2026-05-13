@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client';
 
-const url = process.env.TURSO_DATABASE_URL!;
+const url = "libsql://database-cerise-crystal-vercel-icfg-vlr22qgmwjpxa86dc3wgo2bx.aws-eu-west-1.turso.io";
 const authToken = process.env.TURSO_AUTH_TOKEN!;
 
 if (!url) {
