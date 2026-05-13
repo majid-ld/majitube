@@ -8,10 +8,6 @@ export default function VipRequestsList() {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
   const fetchRequests = async () => {
     try {
       const res = await fetch('/api/vip/requests');
@@ -24,6 +20,10 @@ export default function VipRequestsList() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   const handleAction = async (requestId: string, status: 'accepted' | 'rejected') => {
     setActionId(requestId);

@@ -108,24 +108,26 @@ export const videosDb = {
   },
 
   async getAll() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
       FROM videos v
       LEFT JOIN users u ON v.publisher_id = u.id
       WHERE v.is_reel = 0
       ORDER BY v.created_at DESC
-    `);
+    `});
     return res.rows as unknown as Video[];
   },
 
   async getAllReels() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
       FROM videos v
       LEFT JOIN users u ON v.publisher_id = u.id
       WHERE v.is_reel = 1
       ORDER BY v.created_at DESC
-    `);
+    `});
     return res.rows as unknown as Video[];
   },
 
@@ -202,7 +204,7 @@ export const usersDb = {
   },
 
   async getAll() {
-    const res = await client.execute(`SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC`);
+    const res = await client.execute({ sql: `SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC` });
     return res.rows as unknown as User[];
   },
 
@@ -232,7 +234,7 @@ export const usersDb = {
   async updateProfile(username: string, email: string, avatar_url: string | undefined, bio: string | undefined, tiktok: string | undefined, snapchat: string | undefined, instagram: string | undefined, facebook: string | undefined, id: string) {
     return await client.execute({
       sql: `UPDATE users SET username = ?, email = ?, avatar_url = ?, bio = ?, tiktok = ?, snapchat = ?, instagram = ?, facebook = ? WHERE id = ?`,
-      args: [username, email, avatar_url, bio, tiktok, snapchat, instagram, facebook, id]
+      args: [username, email, avatar_url ?? null, bio ?? null, tiktok ?? null, snapchat ?? null, instagram ?? null, facebook ?? null, id]
     });
   },
 
@@ -244,12 +246,12 @@ export const usersDb = {
   },
 
   async count() {
-    const res = await client.execute(`SELECT COUNT(*) as count FROM users`);
+    const res = await client.execute({ sql: `SELECT COUNT(*) as count FROM users` });
     return (res.rows[0] as unknown as { count: number }).count;
   },
 
   async getAllPublishers() {
-    const res = await client.execute(`SELECT id, username, email, role, avatar_url, created_at FROM users WHERE role = 'publisher' ORDER BY created_at DESC`);
+    const res = await client.execute({ sql: `SELECT id, username, email, role, avatar_url, created_at FROM users WHERE role = 'publisher' ORDER BY created_at DESC` });
     return res.rows as unknown as User[];
   },
 };
@@ -440,17 +442,18 @@ export const watchLaterDb = {
 
 export const analyticsDb = {
   async getStats() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT 
         COALESCE(SUM(views), 0) as total_views, 
         COUNT(id) as total_videos, 
         COALESCE(SUM(size), 0) as total_size 
       FROM videos
-    `);
+    `});
     return res.rows[0] as unknown as { total_views: number, total_videos: number, total_size: number };
   },
   async getTopVideos() {
-    const res = await client.execute(`SELECT * FROM videos ORDER BY views DESC LIMIT 5`);
+    const res = await client.execute({ sql: `SELECT * FROM videos ORDER BY views DESC LIMIT 5` });
     return res.rows as unknown as Video[];
   }
 };
@@ -623,14 +626,15 @@ export const vipDb = {
   },
 
   async getAllGlobal() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT r.*, u.username as subscriber_name, p.username as publisher_name, u.avatar_url, u.email as subscriber_email
       FROM vip_requests r
       JOIN users u ON r.user_id = u.id
       JOIN users p ON r.publisher_id = p.id
       WHERE r.status = 'accepted'
       ORDER BY r.created_at DESC
-    `);
+    `});
     return res.rows as unknown as VipRequest[];
   },
 
@@ -647,14 +651,15 @@ export const vipDb = {
   },
 
   async getAllPendingGlobal() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT r.*, u.username as subscriber_name, p.username as publisher_name, u.avatar_url, u.email as subscriber_email
       FROM vip_requests r
       JOIN users u ON r.user_id = u.id
       JOIN users p ON r.publisher_id = p.id
       WHERE r.status = 'pending'
       ORDER BY r.created_at DESC
-    `);
+    `});
     return res.rows as unknown as VipRequest[];
   },
 };
@@ -676,13 +681,14 @@ export const roleRequestsDb = {
   },
   
   async getAll() {
-    const res = await client.execute(`
+    const res = await client.execute({
+      sql: `
       SELECT r.*, u.username, u.email, u.avatar_url 
       FROM role_requests r
       JOIN users u ON r.user_id = u.id
       WHERE r.status = 'pending'
       ORDER BY r.created_at DESC
-    `);
+    `});
     return res.rows as unknown as RoleRequest[];
   },
 
