@@ -81,9 +81,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { title, description, visibility, thumbnail_url } = await request.json();
+    const { title, description, visibility, thumbnail_url, category } = await request.json();
     
-    videosDb.update.run(title || video.title, description || video.description, visibility || video.visibility, thumbnail_url || video.thumbnail_url, id);
+    videosDb.update.run(
+      title || video.title, 
+      description || video.description, 
+      visibility || video.visibility, 
+      thumbnail_url || video.thumbnail_url, 
+      category || video.category,
+      video.is_reel, // preserve is_reel status
+      id
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

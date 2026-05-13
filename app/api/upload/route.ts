@@ -121,6 +121,8 @@ export async function POST(request: NextRequest) {
     // Clean up temp file
     if (existsSync(tempFilePath)) unlinkSync(tempFilePath);
     
+    const isReel = formData.get('isReel') === 'true' ? 1 : 0;
+    
     videosDb.insert.run(
       videoId,
       driveFileId,
@@ -130,7 +132,8 @@ export async function POST(request: NextRequest) {
       fileSize,
       category,
       session.id,
-      visibility
+      isReel ? 'public' : visibility,
+      isReel
     );
 
     // Notify subscribers

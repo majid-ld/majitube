@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function LikeButton({ videoId }: { videoId: string }) {
+export default function LikeButton({ videoId, isReel }: { videoId: string, isReel?: boolean }) {
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,6 +37,20 @@ export default function LikeButton({ videoId }: { videoId: string }) {
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
     return count;
   };
+
+  if (isReel) {
+    return (
+      <button onClick={toggleLike} disabled={loading} className="flex flex-col items-center">
+        <span 
+          className={`material-symbols-outlined text-[28px] transition-all duration-300 ${hasLiked ? 'text-rose-500 scale-110' : 'text-white'}`}
+          style={{ fontVariationSettings: hasLiked ? "'FILL' 1" : "'FILL' 0" }}
+        >
+          favorite
+        </span>
+        <span className="text-[11px] font-black text-white mt-0.5">{formatCount(likes)}</span>
+      </button>
+    );
+  }
 
   return (
     <button

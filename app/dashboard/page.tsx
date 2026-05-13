@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { VIDEO_CATEGORIES } from '@/lib/constants';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
@@ -13,7 +14,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const [editingVideo, setEditingVideo] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ title: '', description: '', visibility: '', thumbnail_url: '' });
+  const [editForm, setEditForm] = useState({ title: '', description: '', visibility: '', thumbnail_url: '', category: 'Uncategorized' });
   const [savingVideo, setSavingVideo] = useState(false);
   const [uploadingThumb, setUploadingThumb] = useState(false);
 
@@ -49,7 +50,13 @@ export default function DashboardPage() {
 
   const openEditModal = (video: any) => {
     setEditingVideo(video);
-    setEditForm({ title: video.title, description: video.description || '', visibility: video.visibility, thumbnail_url: video.thumbnailUrl || video.thumbnail_url || '' });
+    setEditForm({ 
+      title: video.title, 
+      description: video.description || '', 
+      visibility: video.visibility, 
+      thumbnail_url: video.thumbnailUrl || video.thumbnail_url || '',
+      category: video.category || 'Uncategorized'
+    });
   };
 
   const handleSaveVideo = async (e: React.FormEvent) => {
@@ -164,8 +171,14 @@ export default function DashboardPage() {
                       {topVideos.map((video, idx) => (
                         <Link key={video.id} href={`/video/${video.id}`} className="flex items-center gap-4 group">
                            <div className="w-8 text-[#aaaaaa] font-bold">#{idx + 1}</div>
-                           <div className="w-24 aspect-video rounded overflow-hidden flex-shrink-0">
-                              <img src={video.thumbnailUrl || video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                           <div className="w-24 aspect-video rounded overflow-hidden flex-shrink-0 bg-neutral-900">
+                              {(video.thumbnailUrl || video.thumbnail_url) ? (
+                                <img src={video.thumbnailUrl || video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-neutral-700">movie</span>
+                                </div>
+                              )}
                            </div>
                            <div className="flex-1 min-w-0">
                               <h4 className="text-sm font-bold truncate group-hover:text-[#3ea6ff] transition-colors">{video.title}</h4>
@@ -186,8 +199,14 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                    {myVideos.map((video) => (
                      <div key={video.id} className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
-                        <div className="w-32 aspect-video rounded overflow-hidden flex-shrink-0 relative">
-                           <img src={video.thumbnailUrl || video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                        <div className="w-32 aspect-video rounded overflow-hidden flex-shrink-0 relative bg-neutral-900">
+                           {(video.thumbnailUrl || video.thumbnail_url) ? (
+                              <img src={video.thumbnailUrl || video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                           ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                 <span className="material-symbols-outlined text-neutral-700">movie</span>
+                              </div>
+                           )}
                            <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[10px] font-bold uppercase">{video.visibility}</div>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -254,6 +273,18 @@ export default function DashboardPage() {
                   <option value="public" className="bg-[#181818]">Public</option>
                   <option value="private" className="bg-[#181818]">Private</option>
                   <option value="vip" className="bg-[#181818]">VIP Only</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 mb-2">Category</label>
+                <select 
+                  value={editForm.category} 
+                  onChange={e => setEditForm({...editForm, category: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-violet-500 transition-colors"
+                >
+                  {VIDEO_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat} className="bg-[#181818]">{cat}</option>
+                  ))}
                 </select>
               </div>
               <div>

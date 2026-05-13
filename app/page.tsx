@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import type { VideoMeta } from '@/components/VideoGrid';
 import Link from 'next/link';
+import { VIDEO_CATEGORIES } from '@/lib/constants';
 
 export default function HomePage() {
   const [videos, setVideos] = useState<VideoMeta[]>([]);
@@ -33,9 +34,12 @@ export default function HomePage() {
       
       const res = await fetch(`/api/videos?${params.toString()}`);
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch');
+      }
       setVideos(data.videos || []);
-    } catch {
-      console.error('Failed to load videos');
+    } catch (err: any) {
+      console.error('Failed to load videos:', err.message);
     } finally {
       setLoading(false);
     }
@@ -45,7 +49,7 @@ export default function HomePage() {
     fetchVideos(debouncedQuery, category, sort, feed);
   }, [debouncedQuery, category, sort, feed, fetchVideos]);
 
-  const categories = ['All', 'Trending', 'Exclusive', 'Cyberpunk', 'Music', 'Tech', 'New'];
+  const categories = ['All', ...VIDEO_CATEGORIES];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0f0f0f] text-white font-inter">

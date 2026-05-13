@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: video.title,
       description: video.description || '',
-      images: [video.thumbnail_url],
+      images: [video.thumbnail_url || 'https://placehold.co/1200x630/1a1a1a/ffffff?text=Video+Thumbnail'],
     },
   };
 }
@@ -186,11 +186,17 @@ export default async function VideoPage({ params }: Props) {
               {recommendedVideos.map((v) => (
                 <Link key={v.id} href={`/video/${v.id}`} className="flex gap-2 group">
                   <div className="relative w-40 flex-shrink-0 aspect-video rounded-lg overflow-hidden bg-[#181818]">
-                    <img 
-                      src={v.thumbnail_url} 
-                      alt={v.title}
-                      className="w-full h-full object-cover"
-                    />
+                    {v.thumbnail_url ? (
+                      <img 
+                        src={v.thumbnail_url} 
+                        alt={v.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-neutral-900">
+                        <span className="material-symbols-outlined text-neutral-700 text-xl">movie</span>
+                      </div>
+                    )}
                     {v.visibility === 'vip' && (
                       <div className="absolute top-1 right-1">
                          <span className="badge-vip !text-[8px] !px-1">VIP</span>

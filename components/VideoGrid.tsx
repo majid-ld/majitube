@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
+import { VIDEO_CATEGORIES } from '@/lib/constants';
 import ShareButton from './ShareButton';
 import SaveToPlaylistButton from './SaveToPlaylistButton';
 import { useRouter } from 'next/navigation';
@@ -47,7 +48,13 @@ function VideoCard({ video, session, onRefresh }: { video: VideoMeta, session: a
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ title: video.title, description: video.description || '', visibility: video.visibility, thumbnail_url: video.thumbnailUrl || '' });
+  const [editForm, setEditForm] = useState({ 
+    title: video.title, 
+    description: video.description || '', 
+    visibility: video.visibility, 
+    thumbnail_url: video.thumbnailUrl || '',
+    category: video.category || 'Uncategorized'
+  });
   const [saving, setSaving] = useState(false);
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const router = useRouter();
@@ -163,11 +170,17 @@ function VideoCard({ video, session, onRefresh }: { video: VideoMeta, session: a
     <div className="flex flex-col gap-3 group relative">
       <Link href={`/video/${video.id}`} className="block">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-[#181818]">
-          <img 
-            src={video.thumbnailUrl} 
-            alt={video.title}
-            className="w-full h-full object-cover"
-          />
+          {video.thumbnailUrl ? (
+            <img 
+              src={video.thumbnailUrl} 
+              alt={video.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-neutral-900">
+              <span className="material-symbols-outlined text-neutral-700 text-4xl">movie</span>
+            </div>
+          )}
           
           <div className="absolute top-2 left-2 flex gap-2">
             {video.visibility === 'vip' && (
@@ -305,6 +318,18 @@ function VideoCard({ video, session, onRefresh }: { video: VideoMeta, session: a
                   <option value="public" className="bg-[#181818]">Public</option>
                   <option value="private" className="bg-[#181818]">Private</option>
                   <option value="vip" className="bg-[#181818]">VIP Only</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 mb-2">Category</label>
+                <select 
+                  value={editForm.category} 
+                  onChange={e => setEditForm({...editForm, category: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:border-violet-500 transition-colors"
+                >
+                  {VIDEO_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat} className="bg-[#181818]">{cat}</option>
+                  ))}
                 </select>
               </div>
               <div>

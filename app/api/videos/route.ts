@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const sort = searchParams.get('sort'); // 'newest', 'popular'
     const feed = searchParams.get('feed'); // 'all', 'subscriptions'
+    const isReels = searchParams.get('reels') === 'true';
 
     const session = await getSession();
     
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
       FROM videos v
       LEFT JOIN users u ON v.publisher_id = u.id
-      WHERE (v.visibility = 'public' 
+      WHERE v.is_reel = ? AND (v.visibility = 'public' 
              OR ? = 'admin'
              OR (v.visibility = 'private' AND v.publisher_id = ?)
              OR (v.visibility = 'vip' AND (v.publisher_id = ? OR EXISTS (
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
              ))))
     `;
     const params: any[] = [
+      isReels ? 1 : 0,
       session?.role || 'viewer',
       session?.id || 'null', 
       session?.id || 'null', 
@@ -78,8 +80,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ videos: enriched });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Videos list error:', error);
-    return NextResponse.json({ error: 'Failed to fetch videos' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch videos' }, { status: 500 });
   }
 }

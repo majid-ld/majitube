@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { VIDEO_CATEGORIES } from '@/lib/constants';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk
 
@@ -16,6 +17,7 @@ export default function UploadForm() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Uncategorized');
   const [visibility, setVisibility] = useState<'public' | 'private' | 'vip'>('public');
+  const [isReel, setIsReel] = useState(false);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
@@ -81,6 +83,7 @@ export default function UploadForm() {
         formData.append('description', description);
         formData.append('category', category);
         formData.append('visibility', visibility);
+        formData.append('isReel', String(isReel));
         if (customThumbnailUrl) formData.append('thumbnailUrl', customThumbnailUrl);
 
         const response = await fetch('/api/upload', {
@@ -233,14 +236,9 @@ export default function UploadForm() {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-violet-500/50 transition-all font-bold text-sm appearance-none"
                   >
-                    <option value="Uncategorized">Other</option>
-                    <option value="Tech">Tech</option>
-                    <option value="Cyberpunk">Cyberpunk</option>
-                    <option value="Music">Music</option>
-                    <option value="Life">Life</option>
-                    <option value="Trending">Trending</option>
-                    <option value="Exclusive">Exclusive</option>
-                    <option value="New">New</option>
+                    {VIDEO_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat} className="bg-[#181818]">{cat === 'Uncategorized' ? 'Other' : cat}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -255,6 +253,20 @@ export default function UploadForm() {
                     <option value="vip">VIP Only</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                <input 
+                  type="checkbox" 
+                  id="isReel" 
+                  checked={isReel} 
+                  onChange={(e) => setIsReel(e.target.checked)}
+                  className="w-5 h-5 rounded bg-[#1e1e1e] border-white/10 text-violet-600 focus:ring-violet-600 focus:ring-offset-0 transition-all"
+                />
+                <label htmlFor="isReel" className="flex flex-col cursor-pointer">
+                  <span className="text-sm font-bold text-white">Upload as Reel</span>
+                  <span className="text-[10px] text-neutral-500 font-medium uppercase tracking-wider">Cinematic short-form content</span>
+                </label>
               </div>
             </div>
 

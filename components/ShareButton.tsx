@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function ShareButton() {
+export default function ShareButton({ isReel }: { isReel?: boolean }) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -12,6 +12,16 @@ export default function ShareButton() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  if (isReel) {
+    return (
+      <button onClick={handleShare} className="flex flex-col items-center">
+        <span className={`material-symbols-outlined text-[28px] ${copied ? 'text-green-400' : 'text-white'}`}>
+          {copied ? 'check_circle' : 'share'}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

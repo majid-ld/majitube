@@ -195,5 +195,9 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Remove Typography Overrides that were breaking site-wide styles */
-
+/* Hide Next.js Development Indicators */
+.nextjs-static-indicator-container,
+[data-nextjs-toast-wrapper],
+#nextjs-portal {
+  display: none !important;
+}

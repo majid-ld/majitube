@@ -26,6 +26,7 @@ export default function Sidebar() {
 
   const links = [
     { href: '/', label: 'Home', icon: 'home' },
+    { href: '/reels', label: 'Reels', icon: 'movie' },
     { href: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions' },
   ];
 

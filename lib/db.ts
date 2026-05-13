@@ -145,6 +145,7 @@ try { db.exec("ALTER TABLE comments ADD COLUMN parent_id TEXT REFERENCES comment
 try { db.exec("ALTER TABLE videos ADD COLUMN publisher_id TEXT"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE videos ADD COLUMN visibility TEXT DEFAULT 'public'"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE vip_requests ADD COLUMN expires_at DATETIME"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE videos ADD COLUMN is_reel BOOLEAN DEFAULT 0"); } catch (e) { /* column exists */ }
 
 export interface Video {
   id: string;
@@ -159,6 +160,7 @@ export interface Video {
   publisher_username?: string; // JOINed
   publisher_avatar?: string; // JOINed
   visibility: 'public' | 'private' | 'vip';
+  is_reel: number;
   created_at: string;
 }
 
@@ -196,15 +198,24 @@ export interface Playlist {
 }
 
 export const videosDb = {
-  insert: db.prepare<[string, string, string, string, string, number, string, string | null, string]>(`
-    INSERT INTO videos (id, drive_id, title, description, thumbnail_url, size, category, publisher_id, visibility)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  insert: db.prepare<[string, string, string, string, string, number, string, string | null, string, number]>(`
+    INSERT INTO videos (id, drive_id, title, description, thumbnail_url, size, category, publisher_id, visibility, is_reel)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `),
 
   getAll: db.prepare<[], Video>(`
     SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
     FROM videos v
     LEFT JOIN users u ON v.publisher_id = u.id
+    WHERE v.is_reel = 0
+    ORDER BY v.created_at DESC
+  `),
+
+  getAllReels: db.prepare<[], Video>(`
+    SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
+    FROM videos v
+    LEFT JOIN users u ON v.publisher_id = u.id
+    WHERE v.is_reel = 1
     ORDER BY v.created_at DESC
   `),
 
@@ -223,7 +234,7 @@ export const videosDb = {
     SELECT v.*, u.username as publisher_username, u.avatar_url as publisher_avatar 
     FROM videos v
     LEFT JOIN users u ON v.publisher_id = u.id
-    WHERE v.title LIKE ? ORDER BY v.created_at DESC
+    WHERE v.title LIKE ? AND v.is_reel = 0 ORDER BY v.created_at DESC
   `),
 
   delete: db.prepare<[string]>(`
@@ -238,8 +249,8 @@ export const videosDb = {
     ORDER BY v.created_at DESC
   `),
 
-  update: db.prepare<[string, string, string, string, string]>(`
-    UPDATE videos SET title = ?, description = ?, visibility = ?, thumbnail_url = ? WHERE id = ?
+  update: db.prepare<[string, string, string, string, string, number, string]>(`
+    UPDATE videos SET title = ?, description = ?, visibility = ?, thumbnail_url = ?, category = ?, is_reel = ? WHERE id = ?
   `),
 };
 
@@ -481,10 +492,6 @@ export const vipDb = {
     WHERE r.status = 'pending'
     ORDER BY r.created_at DESC
   `),
-
-  getById: db.prepare<[string], any>(`
-    SELECT * FROM vip_requests WHERE id = ?
-  `)
 };
 
 export const roleRequestsDb = {
