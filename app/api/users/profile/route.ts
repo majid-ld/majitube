@@ -27,9 +27,19 @@ export async function PUT(req: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { username, email, avatar_url, new_password } = await req.json();
+    const { username, email, avatar_url, bio, tiktok, snapchat, instagram, facebook, new_password } = await req.json();
 
-    usersDb.updateProfile.run(username, email, avatar_url || null, session.id);
+    usersDb.updateProfile.run(
+      username, 
+      email, 
+      avatar_url || null, 
+      bio || null, 
+      tiktok || null, 
+      snapchat || null, 
+      instagram || null, 
+      facebook || null, 
+      session.id
+    );
 
     if (new_password) {
       const hashedPassword = await bcrypt.hash(new_password, 10);

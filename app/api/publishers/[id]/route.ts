@@ -7,14 +7,22 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: publisherId } = await params;
+    const { id: publisherIdOrUsername } = await params;
     const session = await getSession();
     const currentUserId = session?.id;
 
-    const publisher = usersDb.getById.get(publisherId);
+    let publisher;
+    if (publisherIdOrUsername.length === 36 && publisherIdOrUsername.includes('-')) {
+      publisher = usersDb.getById.get(publisherIdOrUsername);
+    } else {
+      publisher = usersDb.getByUsername.get(publisherIdOrUsername);
+    }
+
     if (!publisher) {
       return NextResponse.json({ error: 'Publisher not found' }, { status: 404 });
     }
+
+    const publisherId = publisher.id;
 
     // Check VIP status
     let isVip = false;
@@ -51,6 +59,11 @@ export async function GET(
         username: publisher.username,
         avatar_url: publisher.avatar_url,
         role: publisher.role,
+        bio: publisher.bio,
+        tiktok: publisher.tiktok,
+        snapchat: publisher.snapchat,
+        instagram: publisher.instagram,
+        facebook: publisher.facebook,
         subscriberCount,
       },
       videos: filteredVideos,

@@ -41,10 +41,12 @@ db.exec(`
     id TEXT PRIMARY KEY,
     video_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
+    parent_id TEXT,
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(video_id) REFERENCES videos(id) ON DELETE CASCADE,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(parent_id) REFERENCES comments(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS likes (
@@ -76,6 +78,15 @@ db.exec(`
     user_id TEXT NOT NULL,
     video_id TEXT NOT NULL,
     watched_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(user_id, video_id),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(video_id) REFERENCES videos(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS watch_later (
+    user_id TEXT NOT NULL,
+    video_id TEXT NOT NULL,
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY(user_id, video_id),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY(video_id) REFERENCES videos(id) ON DELETE CASCADE
@@ -125,6 +136,12 @@ db.exec(`
 // Add columns safely
 try { db.exec("ALTER TABLE videos ADD COLUMN category TEXT DEFAULT 'Uncategorized'"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN bio TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN tiktok TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN snapchat TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN instagram TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE users ADD COLUMN facebook TEXT"); } catch (e) { /* column exists */ }
+try { db.exec("ALTER TABLE comments ADD COLUMN parent_id TEXT REFERENCES comments(id) ON DELETE CASCADE"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE videos ADD COLUMN publisher_id TEXT"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE videos ADD COLUMN visibility TEXT DEFAULT 'public'"); } catch (e) { /* column exists */ }
 try { db.exec("ALTER TABLE vip_requests ADD COLUMN expires_at DATETIME"); } catch (e) { /* column exists */ }
@@ -152,6 +169,11 @@ export interface User {
   password_hash: string;
   role: string; // 'admin', 'publisher', 'viewer'
   avatar_url?: string;
+  bio?: string;
+  tiktok?: string;
+  snapchat?: string;
+  instagram?: string;
+  facebook?: string;
   created_at: string;
 }
 
@@ -159,6 +181,7 @@ export interface Comment {
   id: string;
   video_id: string;
   user_id: string;
+  parent_id?: string;
   content: string;
   created_at: string;
   username?: string; // JOINed
@@ -214,6 +237,10 @@ export const videosDb = {
     WHERE v.publisher_id = ?
     ORDER BY v.created_at DESC
   `),
+
+  update: db.prepare<[string, string, string, string, string]>(`
+    UPDATE videos SET title = ?, description = ?, visibility = ?, thumbnail_url = ? WHERE id = ?
+  `),
 };
 
 export const usersDb = {
@@ -235,11 +262,15 @@ export const usersDb = {
   `),
 
   getById: db.prepare<[string], User>(`
-    SELECT id, username, email, role, avatar_url, created_at FROM users WHERE id = ?
+    SELECT id, username, email, role, avatar_url, bio, tiktok, snapchat, instagram, facebook, created_at FROM users WHERE id = ?
   `),
 
-  updateProfile: db.prepare<[string, string, string, string]>(`
-    UPDATE users SET username = ?, email = ?, avatar_url = ? WHERE id = ?
+  getByUsername: db.prepare<[string], User>(`
+    SELECT id, username, email, role, avatar_url, bio, tiktok, snapchat, instagram, facebook, created_at FROM users WHERE username = ?
+  `),
+
+  updateProfile: db.prepare<[string, string, string, string, string, string, string, string, string]>(`
+    UPDATE users SET username = ?, email = ?, avatar_url = ?, bio = ?, tiktok = ?, snapchat = ?, instagram = ?, facebook = ? WHERE id = ?
   `),
 
   updatePassword: db.prepare<[string, string]>(`
@@ -256,14 +287,20 @@ export const usersDb = {
 };
 
 export const commentsDb = {
-  insert: db.prepare<[string, string, string, string]>(`
-    INSERT INTO comments (id, video_id, user_id, content) VALUES (?, ?, ?, ?)
+  insert: db.prepare<[string, string, string, string, string | null]>(`
+    INSERT INTO comments (id, video_id, user_id, content, parent_id) VALUES (?, ?, ?, ?, ?)
   `),
   getByVideoId: db.prepare<[string], Comment>(`
     SELECT c.*, u.username, u.avatar_url 
     FROM comments c 
     JOIN users u ON c.user_id = u.id 
-    WHERE c.video_id = ? ORDER BY c.created_at DESC
+    WHERE c.video_id = ? ORDER BY c.created_at ASC
+  `),
+  getById: db.prepare<[string], Comment>(`
+    SELECT c.*, u.username, u.avatar_url 
+    FROM comments c 
+    JOIN users u ON c.user_id = u.id 
+    WHERE c.id = ?
   `)
 };
 
@@ -302,6 +339,25 @@ export const historyDb = {
     JOIN history h ON v.id = h.video_id 
     WHERE h.user_id = ? ORDER BY h.watched_at DESC LIMIT 50
   `)
+};
+
+export const watchLaterDb = {
+  toggle: db.transaction((user_id: string, video_id: string) => {
+    const exists = db.prepare<[string, string], {count: number}>(`SELECT count(*) as count FROM watch_later WHERE user_id = ? AND video_id = ?`).get(user_id, video_id);
+    if (exists && exists.count > 0) {
+      db.prepare<[string, string]>(`DELETE FROM watch_later WHERE user_id = ? AND video_id = ?`).run(user_id, video_id);
+      return false; // removed
+    } else {
+      db.prepare<[string, string]>(`INSERT INTO watch_later (user_id, video_id) VALUES (?, ?)`).run(user_id, video_id);
+      return true; // added
+    }
+  }),
+  getByUserId: db.prepare<[string], Video>(`
+    SELECT v.*, w.added_at FROM videos v 
+    JOIN watch_later w ON v.id = w.video_id 
+    WHERE w.user_id = ? ORDER BY w.added_at DESC
+  `),
+  isInWatchLater: db.prepare<[string, string], {count: number}>(`SELECT COUNT(*) as count FROM watch_later WHERE user_id = ? AND video_id = ?`)
 };
 
 export const analyticsDb = {
@@ -357,11 +413,23 @@ export const vipDb = {
     UPDATE vip_requests SET status = ? WHERE id = ?
   `),
   
+  getById: db.prepare<[string], any>(`
+    SELECT * FROM vip_requests WHERE id = ?
+  `),
+  
   getRequestsForPublisher: db.prepare<[string], any>(`
     SELECT r.*, u.username, u.avatar_url 
     FROM vip_requests r
     JOIN users u ON r.user_id = u.id
     WHERE r.publisher_id = ? AND r.status = 'pending'
+    ORDER BY r.created_at DESC
+  `),
+  
+  getAcceptedVipsForPublisher: db.prepare<[string], any>(`
+    SELECT r.*, u.username, u.avatar_url 
+    FROM vip_requests r
+    JOIN users u ON r.user_id = u.id
+    WHERE r.publisher_id = ? AND r.status = 'accepted'
     ORDER BY r.created_at DESC
   `),
   
@@ -412,6 +480,10 @@ export const vipDb = {
     JOIN users p ON r.publisher_id = p.id
     WHERE r.status = 'pending'
     ORDER BY r.created_at DESC
+  `),
+
+  getById: db.prepare<[string], any>(`
+    SELECT * FROM vip_requests WHERE id = ?
   `)
 };
 

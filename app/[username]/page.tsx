@@ -6,25 +6,38 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import VideoGrid from '@/components/VideoGrid';
 
+function formatSocialUrl(input: string, platform: 'tiktok' | 'snapchat' | 'instagram' | 'facebook'): string {
+  if (!input) return '';
+  if (input.startsWith('http://') || input.startsWith('https://')) return input;
+  const cleanInput = input.replace(/^@/, '');
+  switch (platform) {
+    case 'tiktok': return `https://www.tiktok.com/@${cleanInput}`;
+    case 'snapchat': return `https://www.snapchat.com/add/${cleanInput}`;
+    case 'instagram': return `https://www.instagram.com/${cleanInput}`;
+    case 'facebook': return `https://www.facebook.com/${cleanInput}`;
+    default: return `https://${input}`;
+  }
+}
+
 export default function PublisherProfilePage() {
-  const { id } = useParams() as { id: string };
+  const { username } = useParams() as { username: string };
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/publishers/${id}`)
+    fetch(`/api/publishers/${username}`)
       .then(res => res.json())
       .then(setData)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [username]);
 
   const handleVipRequest = async () => {
     setRequesting(true);
     const res = await fetch('/api/vip/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ publisherId: id }),
+      body: JSON.stringify({ publisherId: data?.publisher?.id }),
     });
     if (res.ok) {
       setData((prev: any) => ({ ...prev, vipStatus: 'pending' }));
@@ -68,7 +81,7 @@ export default function PublisherProfilePage() {
                 <div className="flex-1 text-center md:text-left">
                   <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none mb-4">@{publisher.username}</h1>
               
-              <div className="flex items-center justify-center md:justify-start gap-8 mb-8 text-neutral-500">
+              <div className="flex items-center justify-center md:justify-start gap-8 mb-6 text-neutral-500">
                 <div className="flex items-center gap-2">
                    <span className="material-symbols-outlined text-lg">group</span>
                    <span className="text-xs font-black uppercase tracking-widest">{publisher.subscriberCount} Subscribers</span>
@@ -77,6 +90,37 @@ export default function PublisherProfilePage() {
                    <span className="material-symbols-outlined text-lg">movie</span>
                    <span className="text-xs font-black uppercase tracking-widest">{videos.length} Videos</span>
                 </div>
+              </div>
+
+              {publisher.bio && (
+                <p className="text-sm text-neutral-400 mb-6 max-w-2xl text-center md:text-left">{publisher.bio}</p>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-8">
+                {publisher.tiktok && (
+                  <a href={formatSocialUrl(publisher.tiktok, 'tiktok')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-[#00f2ea]/20 hover:border-[#00f2ea] hover:text-white transition-all text-neutral-400 font-bold text-xs">
+                    <img src="https://icongr.am/simple/tiktok.svg?color=ffffff" alt="TikTok" className="w-4 h-4 opacity-80" />
+                    TikTok
+                  </a>
+                )}
+                {publisher.snapchat && (
+                  <a href={formatSocialUrl(publisher.snapchat, 'snapchat')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-[#fffc00]/20 hover:border-[#fffc00] hover:text-white transition-all text-neutral-400 font-bold text-xs">
+                    <img src="https://icongr.am/simple/snapchat.svg?color=ffffff" alt="Snapchat" className="w-4 h-4 opacity-80" />
+                    Snapchat
+                  </a>
+                )}
+                {publisher.instagram && (
+                  <a href={formatSocialUrl(publisher.instagram, 'instagram')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-[#E1306C]/20 hover:border-[#E1306C] hover:text-white transition-all text-neutral-400 font-bold text-xs">
+                    <img src="https://icongr.am/simple/instagram.svg?color=ffffff" alt="Instagram" className="w-4 h-4 opacity-80" />
+                    Instagram
+                  </a>
+                )}
+                {publisher.facebook && (
+                  <a href={formatSocialUrl(publisher.facebook, 'facebook')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-[#1877F2]/20 hover:border-[#1877F2] hover:text-white transition-all text-neutral-400 font-bold text-xs">
+                    <img src="https://icongr.am/simple/facebook.svg?color=ffffff" alt="Facebook" className="w-4 h-4 opacity-80" />
+                    Facebook
+                  </a>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
@@ -123,7 +167,11 @@ export default function PublisherProfilePage() {
             </div>
           </div>
 
-          <VideoGrid videos={videos} />
+          <VideoGrid videos={videos.map((v: any) => ({
+            ...v,
+            thumbnailUrl: v.thumbnail_url || 'https://placehold.co/1920x1080/1a1a1a/ffffff?text=Video+Thumbnail',
+            publisherId: v.publisher_id
+          }))} />
           
           {videos.length === 0 && (
             <div className="py-32 text-center glass-card rounded-[3rem] border-white/5">

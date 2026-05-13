@@ -23,6 +23,21 @@ export default function HistoryPage() {
       });
   }, []);
 
+  const handleClearHistory = async () => {
+    if (!confirm('Are you sure you want to clear your entire watch history? This action cannot be undone.')) return;
+    
+    try {
+      const res = await fetch('/api/history/clear', { method: 'DELETE' });
+      if (res.ok) {
+        setHistory([]);
+      } else {
+        alert('Failed to clear history');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!session && !loading) {
     return (
       <div className="flex flex-col min-h-screen bg-[#0f0f0f] font-inter">
@@ -56,7 +71,7 @@ export default function HistoryPage() {
                <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Recorded Visual Signatures</p>
             </div>
           </div>
-          <button className="text-[10px] font-black text-neutral-600 uppercase tracking-widest hover:text-white transition-colors border border-white/5 px-4 py-2 rounded-xl">Purge Timeline</button>
+          <button onClick={handleClearHistory} disabled={history.length === 0} className="text-[10px] font-black text-neutral-600 uppercase tracking-widest hover:text-white transition-colors border border-white/5 px-4 py-2 rounded-xl disabled:opacity-30 disabled:hover:text-neutral-600">Purge Timeline</button>
         </div>
 
         <section className="space-y-6">
@@ -75,7 +90,7 @@ export default function HistoryPage() {
                {history.map((video, idx) => (
                  <div key={`${video.id}-${idx}`} className="group relative flex gap-6 p-4 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-violet-500/30 transition-all duration-500">
                     <Link href={`/video/${video.id}`} className="shrink-0 w-64 aspect-video rounded-3xl overflow-hidden bg-neutral-900 border border-white/5">
-                       <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" />
+                       <img src={video.thumbnail_url || 'https://placehold.co/1920x1080/1a1a1a/ffffff?text=Video+Thumbnail'} alt={video.title} className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" />
                     </Link>
                     <div className="flex-1 flex flex-col py-2">
                        <Link href={`/video/${video.id}`}>

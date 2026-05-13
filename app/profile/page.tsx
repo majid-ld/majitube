@@ -4,6 +4,21 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
+function formatSocialUrl(input: string, platform: 'tiktok' | 'snapchat' | 'instagram' | 'facebook'): string {
+  if (!input) return '';
+  if (input.startsWith('http://') || input.startsWith('https://')) return input;
+  
+  // if it's just a username, format it
+  const cleanInput = input.replace(/^@/, '');
+  switch (platform) {
+    case 'tiktok': return `https://www.tiktok.com/@${cleanInput}`;
+    case 'snapchat': return `https://www.snapchat.com/add/${cleanInput}`;
+    case 'instagram': return `https://www.instagram.com/${cleanInput}`;
+    case 'facebook': return `https://www.facebook.com/${cleanInput}`;
+    default: return `https://${input}`;
+  }
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -17,7 +32,13 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [bio, setBio] = useState('');
+  const [tiktok, setTiktok] = useState('');
+  const [snapchat, setSnapchat] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     fetch('/api/users/profile')
@@ -29,6 +50,11 @@ export default function ProfilePage() {
           setUsername(data.user.username);
           setEmail(data.user.email);
           setAvatarUrl(data.user.avatar_url || '');
+          setBio(data.user.bio || '');
+          setTiktok(data.user.tiktok || '');
+          setSnapchat(data.user.snapchat || '');
+          setInstagram(data.user.instagram || '');
+          setFacebook(data.user.facebook || '');
         }
         setLoading(false);
       });
@@ -50,12 +76,48 @@ export default function ProfilePage() {
     setRequesting(false);
   };
 
+  const handleClearHistory = async () => {
+    if (!confirm('Are you sure you want to clear your history?')) return;
+    try {
+      const res = await fetch('/api/history/clear', { method: 'DELETE' });
+      if (res.ok) setHistory([]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAvatarUrl(data.url);
+      } else {
+        alert('Failed to upload avatar');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage('');
     
-    const body: any = { username, email, avatar_url: avatarUrl };
+    const body: any = { username, email, avatar_url: avatarUrl, bio, tiktok, snapchat, instagram, facebook };
     if (newPassword) body.new_password = newPassword;
 
     const res = await fetch('/api/users/profile', {
@@ -89,20 +151,58 @@ export default function ProfilePage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/10 rounded-full blur-[60px] -mr-16 -mt-16" />
             
             <div className="flex flex-col items-center mb-10 relative z-10">
-              <div className="w-28 h-28 rounded-[2rem] bg-violet-600/10 border border-violet-500/20 p-1 mb-6 relative group">
-                <div className="w-full h-full rounded-[1.75rem] overflow-hidden">
+              <div className="w-28 h-28 rounded-[2rem] bg-violet-600/10 border border-violet-500/20 p-1 mb-6 relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                <div className={`w-full h-full rounded-[1.75rem] overflow-hidden ${uploadingAvatar ? 'opacity-50' : ''}`}>
                   <img 
                     src={avatarUrl || "https://lh3.googleusercontent.com/a/default-user"} 
                     alt="Profile" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                   />
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-xl border border-white/10">
-                  <span className="material-symbols-outlined text-lg">edit</span>
-                </div>
+                {uploadingAvatar ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="material-symbols-outlined animate-spin text-white">sync</span>
+                  </div>
+                ) : (
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-xl border border-white/10 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-lg">photo_camera</span>
+                  </div>
+                )}
+                <input type="file" id="avatar-upload" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
               </div>
               <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">{username}</h2>
-              <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">{user?.role || 'Explorer'}</p>
+              <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2 mb-4">{user?.role || 'Explorer'}</p>
+              
+              {user?.bio && (
+                <p className="text-sm text-neutral-400 text-center px-4 mb-6">{user.bio}</p>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                {user?.tiktok && (
+                  <a href={formatSocialUrl(user.tiktok, 'tiktok')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-[#00f2ea]/20 hover:border-[#00f2ea] hover:text-white transition-all text-neutral-400 font-bold text-[10px]">
+                    <img src="https://icongr.am/simple/tiktok.svg?color=ffffff" alt="TikTok" className="w-3.5 h-3.5 opacity-80" />
+                    TikTok
+                  </a>
+                )}
+                {user?.snapchat && (
+                  <a href={formatSocialUrl(user.snapchat, 'snapchat')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-[#fffc00]/20 hover:border-[#fffc00] hover:text-white transition-all text-neutral-400 font-bold text-[10px]">
+                    <img src="https://icongr.am/simple/snapchat.svg?color=ffffff" alt="Snapchat" className="w-3.5 h-3.5 opacity-80" />
+                    Snapchat
+                  </a>
+                )}
+                {user?.instagram && (
+                  <a href={formatSocialUrl(user.instagram, 'instagram')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-[#E1306C]/20 hover:border-[#E1306C] hover:text-white transition-all text-neutral-400 font-bold text-[10px]">
+                    <img src="https://icongr.am/simple/instagram.svg?color=ffffff" alt="Instagram" className="w-3.5 h-3.5 opacity-80" />
+                    Instagram
+                  </a>
+                )}
+                {user?.facebook && (
+                  <a href={formatSocialUrl(user.facebook, 'facebook')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-[#1877F2]/20 hover:border-[#1877F2] hover:text-white transition-all text-neutral-400 font-bold text-[10px]">
+                    <img src="https://icongr.am/simple/facebook.svg?color=ffffff" alt="Facebook" className="w-3.5 h-3.5 opacity-80" />
+                    Facebook
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4 relative z-10">
@@ -183,14 +283,32 @@ export default function ProfilePage() {
             </div>
 
             <form onSubmit={handleSave} className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Update Username</label>
+                <input type="text" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Bio</label>
+                <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="Tell us about yourself..." />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Update Username</label>
-                  <input type="text" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" />
+                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">TikTok</label>
+                  <input type="text" value={tiktok} onChange={e => setTiktok(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="Username or Link" />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Avatar Link</label>
-                  <input type="url" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="https://..." />
+                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Snapchat</label>
+                  <input type="text" value={snapchat} onChange={e => setSnapchat(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="Username or Link" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Instagram</label>
+                  <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="Username or Link" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-neutral-600 uppercase tracking-[0.2em] ml-1">Facebook</label>
+                  <input type="text" value={facebook} onChange={e => setFacebook(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold focus:border-violet-500/50 transition-all outline-none" placeholder="Username or Link" />
                 </div>
               </div>
 
@@ -212,7 +330,7 @@ export default function ProfilePage() {
                 <span className="material-symbols-outlined text-violet-500">history</span>
                 Chronology
               </h3>
-              <button className="text-[10px] font-black text-neutral-600 uppercase tracking-widest hover:text-white transition-colors">Clear History</button>
+              <button onClick={handleClearHistory} disabled={history.length === 0} className="text-[10px] font-black text-neutral-600 uppercase tracking-widest hover:text-white transition-colors disabled:opacity-50">Clear History</button>
             </div>
             
             {history.length === 0 ? (

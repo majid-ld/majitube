@@ -118,22 +118,32 @@ export default async function VideoPage({ params }: Props) {
               
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-3">
                 <div className="flex items-center gap-3">
-                  <Link href={`/publisher/${video.publisher_id}`}>
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-[#272727]">
-                      <img 
-                        src={video.publisher_avatar || "https://lh3.googleusercontent.com/a/default-user"} 
-                        alt={video.publisher_username}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </Link>
-                  <div className="flex flex-col mr-4">
-                    <Link href={`/publisher/${video.publisher_id}`} className="font-bold text-sm hover:text-neutral-300">
-                      {video.publisher_username || 'DashTube Creator'}
+                  {video.publisher_id ? (
+                    <Link href={`/${video.publisher_username || video.publisher_id}`}>
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#272727]">
+                        <img 
+                          src={video.publisher_avatar || "https://lh3.googleusercontent.com/a/default-user"} 
+                          alt={video.publisher_username}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </Link>
-                    <span className="text-xs text-[#aaaaaa]">1.2M subscribers</span>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-[#272727] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-neutral-600">person</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col mr-4">
+                    {video.publisher_id ? (
+                      <Link href={`/${video.publisher_username || video.publisher_id}`} className="font-bold text-sm hover:text-neutral-300">
+                        {video.publisher_username || 'DashTube Creator'}
+                      </Link>
+                    ) : (
+                      <span className="font-bold text-sm">Unknown Creator</span>
+                    )}
+                    <span className="text-xs text-[#aaaaaa]">Creator</span>
                   </div>
-                  <SubscribeButton publisherId={video.publisher_id!} />
+                  {video.publisher_id && <SubscribeButton publisherId={video.publisher_id} />}
                 </div>
 
                 <div className="flex items-center gap-2">

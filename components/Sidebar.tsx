@@ -32,6 +32,7 @@ export default function Sidebar() {
   const personalLinks = [
     { href: '/playlists', label: 'Library', icon: 'video_library' },
     { href: '/history', label: 'History', icon: 'history' },
+    { href: '/watch-later', label: 'Watch Later', icon: 'schedule' },
     { href: '/profile', label: 'Your Profile', icon: 'account_circle' },
   ];
 

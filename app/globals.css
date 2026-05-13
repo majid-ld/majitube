@@ -195,15 +195,5 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Typography Overrides */
-h1 { @apply text-4xl font-extrabold tracking-tight text-white; }
-h2 { @apply text-2xl font-bold text-white; }
-h3 { @apply text-xl font-semibold text-white; }
-h4 { @apply text-lg font-medium text-white; }
-
-/* Brighten neutral text globally with high-contrast colors */
-.text-neutral-500 { color: #cbd5e1 !important; } /* slate-300 (very light) */
-.text-neutral-600 { color: #94a3b8 !important; } /* slate-400 (light) */
-.text-neutral-400 { color: #f8fafc !important; } /* slate-50 (near white) */
-.text-neutral-300 { color: #ffffff !important; } /* white */
+/* Remove Typography Overrides that were breaking site-wide styles */
 

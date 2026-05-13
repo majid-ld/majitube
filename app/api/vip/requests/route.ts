@@ -11,11 +11,12 @@ export async function GET() {
 
     // Only publishers/admins can see requests meant for them
     if (session.role !== 'publisher' && session.role !== 'admin') {
-      return NextResponse.json({ requests: [] });
+      return NextResponse.json({ requests: [], accepted: [] });
     }
 
     const requests = vipDb.getRequestsForPublisher.all(session.id);
-    return NextResponse.json({ requests });
+    const accepted = vipDb.getVipSubscribers.all(session.id);
+    return NextResponse.json({ requests, accepted });
   } catch (error) {
     console.error('Failed to get VIP requests:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

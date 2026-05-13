@@ -23,9 +23,20 @@ export async function PUT(
     // But status update helper is simple.
     vipDb.updateStatus.run(status, id);
 
-    // Notify the user - we need the user_id of the request
-    // I don't have a getRequestById, but I can use a raw query or add one.
-    // Let's add it to lib/db.ts later if needed, for now I'll just run.
+    // Notify the user
+    const requestItem = vipDb.getById.get(id);
+    if (requestItem) {
+      const message = status === 'accepted' 
+        ? `Your VIP request for ${session.username} has been accepted!` 
+        : `Your VIP request for ${session.username} was declined.`;
+      
+      notificationsDb.create.run(
+        uuidv4(),
+        requestItem.user_id,
+        message,
+        `/${session.username}`
+      );
+    }
     
     return NextResponse.json({ message: `Request ${status}` });
   } catch (error) {

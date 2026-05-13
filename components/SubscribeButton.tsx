@@ -8,11 +8,22 @@ export default function SubscribeButton({ publisherId }: { publisherId: string }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!publisherId) {
+      setLoading(false);
+      return;
+    }
     fetch(`/api/subscriptions?publisher_id=${publisherId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
       .then(data => {
         setSubscribers(data.subscribers || 0);
         setIsSubscribed(data.isSubscribed || false);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Subscription fetch error:', err);
         setLoading(false);
       });
   }, [publisherId]);

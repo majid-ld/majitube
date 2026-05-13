@@ -1,19 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Comment {
   id: string;
   content: string;
   created_at: string;
+  user_id: string;
   username?: string;
   avatar_url?: string;
+  parent_id?: string;
 }
 
 export default function CommentsSection({ videoId }: { videoId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
 
   const fetchComments = async () => {
     const res = await fetch(`/api/videos/${videoId}/comments`);
@@ -49,6 +54,30 @@ export default function CommentsSection({ videoId }: { videoId: string }) {
     }
   };
 
+  const handleReplySubmit = async (parentId: string) => {
+    if (!replyContent.trim()) return;
+    
+    try {
+      const res = await fetch(`/api/videos/${videoId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: replyContent, parentId })
+      });
+      if (res.ok) {
+        setReplyContent('');
+        setReplyingTo(null);
+        fetchComments();
+      } else if (res.status === 401) {
+        alert('Please login to reply');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const rootComments = comments.filter(c => !c.parent_id);
+  const getReplies = (parentId: string) => comments.filter(c => c.parent_id === parentId);
+
   return (
     <div className="mt-12 pt-10 border-t border-white/5 font-inter">
       <div className="flex items-center gap-3 mb-8">
@@ -79,23 +108,84 @@ export default function CommentsSection({ videoId }: { videoId: string }) {
       </form>
 
       <div className="space-y-8">
-        {comments.map((comment) => (
+        {rootComments.map((comment) => (
           <div key={comment.id} className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-violet-500/30 transition-colors">
-              {comment.avatar_url ? (
-                <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
-              ) : (
-                <span className="material-symbols-outlined text-neutral-600">person</span>
-              )}
-            </div>
+            <Link href={`/${comment.username || comment.user_id}`} className="shrink-0">
+              <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden group-hover:border-violet-500/30 transition-colors">
+                {comment.avatar_url ? (
+                  <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-neutral-600">person</span>
+                )}
+              </div>
+            </Link>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-1">
-                <span className="font-bold text-white text-sm tracking-tight">@{comment.username || 'Anonymous'}</span>
+                <Link href={`/${comment.username || comment.user_id}`} className="font-bold text-white text-sm tracking-tight hover:text-violet-400 transition-colors">
+                  @{comment.username || 'Anonymous'}
+                </Link>
                 <span className="text-[10px] font-black text-neutral-600 uppercase tracking-widest">
                   {new Date(comment.created_at).toLocaleDateString()}
                 </span>
               </div>
               <p className="text-sm text-neutral-400 leading-relaxed font-medium">{comment.content}</p>
+              
+              <div className="mt-2">
+                <button 
+                  onClick={() => { setReplyingTo(replyingTo === comment.id ? null : comment.id); setReplyContent(''); }}
+                  className="text-xs font-bold text-neutral-500 hover:text-white transition-colors"
+                >
+                  REPLY
+                </button>
+              </div>
+              
+              {replyingTo === comment.id && (
+                <div className="mt-4 flex gap-3">
+                  <input
+                    type="text"
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Write a reply..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-violet-500/50 transition-all placeholder-neutral-600"
+                  />
+                  <button
+                    onClick={() => handleReplySubmit(comment.id)}
+                    disabled={!replyContent.trim()}
+                    className="bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white px-4 rounded-xl text-xs font-bold transition-all"
+                  >
+                    Reply
+                  </button>
+                </div>
+              )}
+
+              {getReplies(comment.id).length > 0 && (
+                <div className="mt-4 space-y-4 pl-4 border-l-2 border-white/5">
+                  {getReplies(comment.id).map(reply => (
+                    <div key={reply.id} className="flex gap-3 group/reply">
+                      <Link href={`/${reply.username || reply.user_id}`} className="shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover/reply:border-violet-500/30 transition-colors">
+                          {reply.avatar_url ? (
+                            <img src={reply.avatar_url} alt={reply.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-neutral-600 text-sm">person</span>
+                          )}
+                        </div>
+                      </Link>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <Link href={`/${reply.username || reply.user_id}`} className="font-bold text-white text-xs tracking-tight hover:text-violet-400 transition-colors">
+                            @{reply.username || 'Anonymous'}
+                          </Link>
+                          <span className="text-[9px] font-black text-neutral-600 uppercase tracking-widest">
+                            {new Date(reply.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-400 leading-relaxed font-medium">{reply.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}

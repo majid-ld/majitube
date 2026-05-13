@@ -113,7 +113,7 @@ export function getDriveStreamUrls(fileId: string) {
     // Google Drive preview embed
     embedUrl: `https://drive.google.com/file/d/${fileId}/preview`,
     // Thumbnail (may require the file to be a Google Doc type; for videos, use a placeholder)
-    thumbnailUrl: `https://drive.google.com/thumbnail?id=${fileId}&sz=w640`,
+    thumbnailUrl: '',
   };
 }
 

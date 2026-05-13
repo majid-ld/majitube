@@ -166,15 +166,29 @@ export default function VipManagementPage() {
                                   <button onClick={() => setEditingId(null)} className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">CANCEL</button>
                                 </div>
                               ) : (
-                                <button 
-                                  onClick={() => {
-                                    setEditingId(sub.id);
-                                    setExpiryDate(sub.expires_at ? sub.expires_at.split('T')[0] : '');
-                                  }} 
-                                  className="text-neutral-600 hover:text-white transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-lg">edit_calendar</span>
-                                </button>
+                                <div className="flex items-center justify-end gap-3">
+                                  <button 
+                                    onClick={() => {
+                                      setEditingId(sub.id);
+                                      setExpiryDate(sub.expires_at ? sub.expires_at.split('T')[0] : '');
+                                    }} 
+                                    className="text-neutral-600 hover:text-white transition-colors"
+                                    title="Edit Expiry Date"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">edit_calendar</span>
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to revoke VIP access for @${sub.username}?`)) {
+                                        handleStatus(sub.id, 'rejected');
+                                      }
+                                    }}
+                                    className="text-neutral-600 hover:text-red-500 transition-colors"
+                                    title="Revoke Access"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                  </button>
+                                </div>
                               )}
                             </td>
                           </tr>
